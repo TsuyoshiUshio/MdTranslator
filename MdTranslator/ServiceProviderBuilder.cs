@@ -13,7 +13,8 @@ namespace MdTranslator
     {
         public ILoggerFactory LoggerFactory
         {
-            get; set; }
+            get; set;
+        }
 
         public IServiceProvider BuildServiceProvider()
         {
@@ -22,6 +23,9 @@ namespace MdTranslator
             services.AddSingleton<IGitHubContext, GitHubContext>();
             services.AddSingleton<IGitHubRepository, GitHubRepository>();
             services.AddSingleton<IGitHubService, GitHubService>();
+            services.AddSingleton<ITranslatorContext, TranslatorContext>();
+            services.AddSingleton<ITranslatorRepository, TranslatorRepository>();
+            services.AddSingleton<ITranslatorService, TranslatorService>();
             return services.BuildServiceProvider(true);
         }
     }

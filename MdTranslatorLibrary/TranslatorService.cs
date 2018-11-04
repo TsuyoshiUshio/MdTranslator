@@ -9,7 +9,7 @@ namespace MdTranslatorLibrary
     {
         Task<string> TranslateAsync(string text, string language);
     }
-    public class TranslatorService
+    public class TranslatorService : ITranslatorService
     {
         private ITranslatorRepository repository;
         public TranslatorService(ITranslatorRepository repository)
