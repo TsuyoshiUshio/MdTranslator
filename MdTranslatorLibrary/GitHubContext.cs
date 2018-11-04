@@ -9,6 +9,7 @@ namespace MdTranslatorLibrary
     public interface IGitHubContext
     {
         Task<HttpResponseMessage> DeleteAsync(string url);
+        Task<HttpResponseMessage> GetAsync(string url);
     }
     public class GitHubContext : IGitHubContext
     {
@@ -20,9 +21,14 @@ namespace MdTranslatorLibrary
             client.DefaultRequestHeaders.Add("Authorization", $"token {Environment.GetEnvironmentVariable("GitHubToken")}");
         }
 
-        public async Task<HttpResponseMessage> DeleteAsync(string url)
+        public Task<HttpResponseMessage> DeleteAsync(string url)
         {
-            return await client.DeleteAsync(url);           
+            return client.DeleteAsync(url);           
+        }
+
+        public Task<HttpResponseMessage> GetAsync(string url)
+        {
+            return client.GetAsync(new Uri(url));
         }
     }
 }
