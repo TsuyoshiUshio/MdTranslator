@@ -15,9 +15,9 @@ steps:
 - script: |
     mkdir $(Build.SourcesDirectory)\results
     dotnet test --logger trx /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura  MdTranslatorLibrary.Test
-    dotnet test --logger trx /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:MergeWtih=$(Build.SourcesDirectory)\MdTranslatorLibrary.Test\coverage.cobertura.xml MdTranslator.Test
-    dir $(Build.SourcesDirectory)\MdTranslatorLibrary.Test
-    copy $(Build.SourcesDirectory)\MdTranslatorLibrary.Test\coverage.cobertura.xml $(Build.SourcesDirectory)\results
+    dotnet test --logger trx /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:MergeWtih=$(Build.SourcesDirectory)\MdTranslatorLibrary.Test\TestResults\coverage.cobertura.xml MdTranslator.Test
+    dir $(Build.SourcesDirectory)\MdTranslatorLibrary.Test\TestResults
+    copy $(Build.SourcesDirectory)\MdTranslatorLibrary.Test\TestResults\coverage.cobertura.xml $(Build.SourcesDirectory)\results
     dotnet tool install dotnet-reportgenerator-globaltool --tool-path . --version 4.0.0-rc4
     .\reportgenerator "-reports:$(Build.SourcesDirectory)\MdTranslator.Test\coverage.cobertura.xml" "-targetdir:results" "-reporttypes:HTMLInline;HTMLChart"
   displayName: 'Unit testing'
