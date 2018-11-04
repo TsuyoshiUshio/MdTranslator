@@ -2,7 +2,10 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
+using MdTranslatorLibrary;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MdTranslator
 {
@@ -14,7 +17,12 @@ namespace MdTranslator
 
         public IServiceProvider BuildServiceProvider()
         {
-            throw new NotImplementedException();
+            var services = new ServiceCollection();
+            services.AddSingleton<HttpClient, HttpClient>();
+            services.AddSingleton<IGitHubContext, GitHubContext>();
+            services.AddSingleton<IGitHubRepository, GitHubRepository>();
+            services.AddSingleton<IGitHubService, GitHubService>();
+            return services.BuildServiceProvider(true);
         }
     }
 }
