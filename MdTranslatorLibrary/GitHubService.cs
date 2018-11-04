@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace MdTranslatorLibrary
 {
     public interface IGitHubService
     {
         Task<Branch> CreateBranchAsync(string owner, string repo, string sourceBranch, string language);
+        Task<IEnumerable<string>> SearchMdFilePaths(string owner, string repo, string sha);
     }
     public class GitHubService : IGitHubService
     {
@@ -32,5 +35,10 @@ namespace MdTranslatorLibrary
             return await repository.GetBranchAsync(owner, repo, targetBranch);
         }
 
+        public async Task<IEnumerable<string>> SearchMdFilePaths(string owner, string repo, string sha)
+        {
+            var results = await repository.SearchMdFilesAsync(owner, repo, sha);
+            return results.Select(p => p.path);
+        }
     }
 }

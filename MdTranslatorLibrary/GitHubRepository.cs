@@ -14,6 +14,8 @@ namespace MdTranslatorLibrary
         Task<Branch> GetBranchAsync(string owner, string repo, string branchName);
 
         Task CreateBranchAsync(string owner, string repo, string branchName, string sha);
+
+        Task<IEnumerable<Tree>> SearchMdFilesAsync(string owner, string repo, string sha);
     }
     public class GitHubRepository : IGitHubRepository
     {
@@ -64,6 +66,33 @@ namespace MdTranslatorLibrary
             {
                 var search = JsonConvert.DeserializeObject<SearchResult>(await response.Content.ReadAsStringAsync());
                 return search.tree.Where(p => p.path.EndsWith(".md"));
+            }
+            else
+            {
+                throw new RestAPICallException(response.StatusCode.ToString(), response.ReasonPhrase, response.RequestMessage);
+            }
+        }
+
+        public async Task<string> GetFileContents(string owner, string repo, string branch, string path)
+        {
+            var response = await context.GetAsync($"{RestAPIBase}/{owner}/{repo}/contents/{path}?ref={branch}");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var content = JsonConvert.DeserializeObject<Content>(await response.Content.ReadAsStringAsync());
+                return await DownloadContents(content.download_url);
+            } 
+            else
+            {
+                throw new RestAPICallException(response.StatusCode.ToString(), response.ReasonPhrase, response.RequestMessage);
+            }
+        }
+
+        private async Task<string> DownloadContents(string downloadUrl)
+        {
+            var response = await context.GetAsync(downloadUrl);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await response.Content.ReadAsStringAsync();
             }
             else
             {

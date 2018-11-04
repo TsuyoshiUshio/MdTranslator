@@ -189,6 +189,70 @@ namespace MdTranslatorLibrary.Test
             Assert.Equal(ExpectedURL, ex.RequestMessage.RequestUri.ToString());
         }
 
+        [Fact]
+        public async Task Get_FileContents_Normal()
+        {
+            var InputOwner = "foo";
+            var InputRepo = "bar";
+            var InputBranch = "baz";
+            var InputPath = "qux.md";
+            var ExpectedContentURL = $"https://api.github.com/repos/{InputOwner}/{InputRepo}/contents/{InputPath}?ref={InputBranch}";
+            var ExpectedDownloadURL = $"https://raw.githubusercontent.com/foo/bar/baz/qux.md";
+            var ExpectedContent = "quux";
+            // Task<string> GetFileContents(string owner, string repo, string branch, string path)
+            // var response = await context.GetAsync($"{RestAPIBase}/{owner}/{repo}/contents/{path}?ref={branch}");
+            // var response = await context.GetAsync(downloadUrl);
+            var fixture = new GitHubFixture();
+            fixture.SetupGetFileContents(ExpectedContentURL, ExpectedDownloadURL,ExpectedContent);
+            var respository = new GitHubRepository(fixture.GitHubContext);
+            var result = await respository.GetFileContents(InputOwner, InputRepo, InputBranch, InputPath);
+            Assert.Equal(ExpectedContent, result);
+        }
+
+        [Fact]
+        public async Task Get_FileContents_Exception_First()
+        {
+            var InputOwner = "foo";
+            var InputRepo = "bar";
+            var InputBranch = "baz";
+            var InputPath = "qux.md";
+            var ExpectedContentURL = $"https://api.github.com/repos/{InputOwner}/{InputRepo}/contents/{InputPath}?ref={InputBranch}";
+
+            var fixture = new GitHubFixture();
+            fixture.SetupGetFileContentsFirstFails(ExpectedContentURL);
+            var respository = new GitHubRepository(fixture.GitHubContext);
+            var ex = await Assert.ThrowsAsync<RestAPICallException>(async () =>
+                await respository.GetFileContents(InputOwner, InputRepo, InputBranch, InputPath)
+            );
+
+            Assert.Equal("InternalServerError", ex.StatusCode);
+            Assert.Equal("Internal Server Error", ex.Message);
+            Assert.Equal(ExpectedContentURL, ex.RequestMessage.RequestUri.ToString());
+        }
+
+        [Fact]
+        public async Task Get_FileContents_Exception_Second()
+        {
+            var InputOwner = "foo";
+            var InputRepo = "bar";
+            var InputBranch = "baz";
+            var InputPath = "qux.md";
+            var ExpectedContentURL = $"https://api.github.com/repos/{InputOwner}/{InputRepo}/contents/{InputPath}?ref={InputBranch}";
+            var ExpectedDownloadURL = $"https://raw.githubusercontent.com/foo/bar/baz/qux.md";
+
+            var fixture = new GitHubFixture();
+            fixture.SetupGetFileContentsSecondFails(ExpectedContentURL, ExpectedDownloadURL);
+            var respository = new GitHubRepository(fixture.GitHubContext);
+
+            var ex = await Assert.ThrowsAsync<RestAPICallException>(async () =>
+                await respository.GetFileContents(InputOwner, InputRepo, InputBranch, InputPath)
+            );
+
+            Assert.Equal("InternalServerError", ex.StatusCode);
+            Assert.Equal("Internal Server Error", ex.Message);
+            Assert.Equal(ExpectedDownloadURL, ex.RequestMessage.RequestUri.ToString());
+        }
+
 
         private class GitHubFixture
         {
@@ -278,6 +342,62 @@ namespace MdTranslatorLibrary.Test
                 message.RequestMessage = requestMessage;
 
                 gitHubContextMock.Setup(p => p.GetAsync(url)).ReturnsAsync(message);
+            }
+
+            public void SetupGetFileContents(string contentUrl, string downloadUrl, string expectedContents)
+            {
+                this.SetUp();
+                var message = new HttpResponseMessage();
+                message.StatusCode = HttpStatusCode.OK;
+                var content = new Content
+                {
+                    download_url = downloadUrl
+                };
+                message.Content = new StringContent(JsonConvert.SerializeObject(content));
+
+                gitHubContextMock.Setup(p => p.GetAsync(contentUrl)).ReturnsAsync(message);
+
+                var downloadMessage = new HttpResponseMessage();
+                downloadMessage.StatusCode = HttpStatusCode.OK;
+                downloadMessage.Content = new StringContent(expectedContents);
+
+                gitHubContextMock.Setup(p => p.GetAsync(downloadUrl)).ReturnsAsync(downloadMessage);
+            }
+
+            public void SetupGetFileContentsFirstFails(string contentUrl)
+            {
+                this.SetUp();
+                var message = new HttpResponseMessage();
+                message.StatusCode = HttpStatusCode.InternalServerError;
+
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.RequestUri = new Uri(contentUrl);
+                message.RequestMessage = requestMessage;
+
+                gitHubContextMock.Setup(p => p.GetAsync(contentUrl)).ReturnsAsync(message);
+            }
+
+            public void SetupGetFileContentsSecondFails(string contentUrl, string downloadUrl)
+            {
+                this.SetUp();
+                var message = new HttpResponseMessage();
+                message.StatusCode = HttpStatusCode.OK;
+                var content = new Content
+                {
+                    download_url = downloadUrl
+                };
+                message.Content = new StringContent(JsonConvert.SerializeObject(content));
+
+                gitHubContextMock.Setup(p => p.GetAsync(contentUrl)).ReturnsAsync(message);
+
+                var downloadMessage = new HttpResponseMessage();
+                downloadMessage.StatusCode = HttpStatusCode.InternalServerError;
+
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.RequestUri = new Uri(downloadUrl);
+                downloadMessage.RequestMessage = requestMessage;
+
+                gitHubContextMock.Setup(p => p.GetAsync(downloadUrl)).ReturnsAsync(downloadMessage);
             }
 
             private void SetUp()
