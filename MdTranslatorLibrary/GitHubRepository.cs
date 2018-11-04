@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -16,6 +17,8 @@ namespace MdTranslatorLibrary
         Task CreateBranchAsync(string owner, string repo, string branchName, string sha);
 
         Task<IEnumerable<Tree>> SearchMdFilesAsync(string owner, string repo, string sha);
+
+        Task<string> GetFileContents(string owner, string repo, string branch, string path);
     }
     public class GitHubRepository : IGitHubRepository
     {
@@ -70,6 +73,21 @@ namespace MdTranslatorLibrary
             else
             {
                 throw new RestAPICallException(response.StatusCode.ToString(), response.ReasonPhrase, response.RequestMessage);
+            }
+        }
+
+        public async Task UpdateFileContents(string owner, string repo, string path, FileOperation operation)
+        {
+            using (var request = new HttpRequestMessage())
+            {
+                request.Method = HttpMethod.Put;
+                request.RequestUri = new Uri($"https://api.github.com/repos/{owner}/{repo}/contents/{path}");
+                request.Content = new StringContent(JsonConvert.SerializeObject(operation), Encoding.UTF8, "application/json");
+                var response = await context.SendAsync(request);
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    throw new RestAPICallException(response.StatusCode.ToString(), response.ReasonPhrase, response.RequestMessage);
+                }
             }
         }
 

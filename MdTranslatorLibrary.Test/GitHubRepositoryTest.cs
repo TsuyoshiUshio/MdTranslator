@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using Newtonsoft.Json;
@@ -253,11 +254,60 @@ namespace MdTranslatorLibrary.Test
             Assert.Equal(ExpectedDownloadURL, ex.RequestMessage.RequestUri.ToString());
         }
 
+        [Fact]
+        public async Task Update_FileContents_Normal()
+        {
+            var fixture = new GitHubFixture();
+            fixture.SetUpSampleInputOperation();
+
+            var ExpectedURL = $"https://api.github.com/repos/{fixture.InputOwner}/{fixture.InputRepo}/contents/{fixture.InputPath}";
+
+            // On the Setup, I call Assert on the Callback.
+            fixture.SetupUpdateFileContents(ExpectedURL, fixture.InputOperation);
+            var repository = new GitHubRepository(fixture.GitHubContext);
+            await repository.UpdateFileContents(fixture.InputOwner, fixture.InputRepo, fixture.InputPath,
+                fixture.InputOperation);
+        }
+
+        [Fact]
+        public async Task Update_FileContents_Exception()
+        {
+            var fixture = new GitHubFixture();
+            fixture.SetUpSampleInputOperation();
+            var ExpectedURL = $"https://api.github.com/repos/{fixture.InputOwner}/{fixture.InputRepo}/contents/{fixture.InputPath}";
+            fixture.SetupUpdateFileContentsFailure(ExpectedURL, fixture.InputOperation);
+            var repository = new GitHubRepository(fixture.GitHubContext);
+            var ex = await Assert.ThrowsAsync<RestAPICallException>(async () =>
+                    await repository.UpdateFileContents(fixture.InputOwner, fixture.InputRepo, fixture.InputPath,
+                        fixture.InputOperation)
+            );
+
+            Assert.Equal("InternalServerError", ex.StatusCode);
+            Assert.Equal("Internal Server Error", ex.Message);
+            Assert.Equal(ExpectedURL, ex.RequestMessage.RequestUri.ToString());
+        }
+
 
         private class GitHubFixture
         {
+            public string InputOwner { get; set; }
+            public string InputRepo { get; set; }
+
+            public string InputBranch { get; set; }
+            public string InputPath { get; set; }
+
+            public FileOperation InputOperation { get; set; }
+
             public IGitHubContext GitHubContext => gitHubContextMock.Object;
             private Mock<IGitHubContext> gitHubContextMock;
+
+            public GitHubFixture()
+            {
+                this.InputOwner = "foo";
+                this.InputRepo = "bar";
+                this.InputBranch = "baz";
+                this.InputPath = "qux.md";
+            }
 
             public void SetUpDeleteAsync(string url)
             {
@@ -400,9 +450,62 @@ namespace MdTranslatorLibrary.Test
                 gitHubContextMock.Setup(p => p.GetAsync(downloadUrl)).ReturnsAsync(downloadMessage);
             }
 
+            public void SetUpSampleInputOperation()
+            {
+                var InputMessage = "hello.";
+                var InputCommiterName = "Tsuyoshi Ushio";
+                var InputCommiterEmail = "foo@bar.com";
+                var InputContent = "konichiwa.";
+                var InputSha = "qux";
+  
+
+                // public async Task UpdateFileContents(string owner, string repo, string path, FileOperation operation)
+                this.InputOperation = new FileOperation
+                {
+                    message = InputMessage,
+                    commiter = new Commiter
+                    {
+                        name = InputCommiterName,
+                        email = InputCommiterEmail
+                    },
+                    branch = this.InputBranch,
+                    content = Convert.ToBase64String(Encoding.UTF8.GetBytes(InputContent)),
+                    sha = InputSha
+                };
+            }
+
+            public void SetupUpdateFileContents(string url, FileOperation operation)
+            {
+                this.SetUp();
+                var message = new HttpResponseMessage();
+                message.StatusCode = HttpStatusCode.OK;
+
+                gitHubContextMock.Setup(p => p.SendAsync(It.IsAny<HttpRequestMessage>())).ReturnsAsync(message)
+                    .Callback<HttpRequestMessage>(async (meg) =>
+                    {
+                       Assert.Equal(HttpMethod.Put, meg.Method);
+                       Assert.Equal(url, meg.RequestUri.ToString());
+                       Assert.Equal(JsonConvert.SerializeObject(operation), await meg.Content.ReadAsStringAsync());
+                    });
+            }
+
+            public void SetupUpdateFileContentsFailure(string url, FileOperation operation)
+            {
+                this.SetUp();
+                var message = new HttpResponseMessage();
+                message.StatusCode = HttpStatusCode.InternalServerError;
+
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.RequestUri = new Uri(url);
+                message.RequestMessage = requestMessage;
+                gitHubContextMock.Setup(p => p.SendAsync(It.IsAny<HttpRequestMessage>())).ReturnsAsync(message);
+            }
+
             private void SetUp()
             {
                 gitHubContextMock = new Mock<IGitHubContext>();
+
+
             }
         }
     }

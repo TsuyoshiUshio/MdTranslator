@@ -73,7 +73,7 @@ namespace MdTranslatorLibrary
         public string to { get; set; }
     }
 
-    public class NewFile
+    public class FileOperation
     {
         public string message { get; set; }
         public Commiter commiter { get; set; }

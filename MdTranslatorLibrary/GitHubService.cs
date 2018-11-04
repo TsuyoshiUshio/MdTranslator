@@ -9,6 +9,7 @@ namespace MdTranslatorLibrary
     {
         Task<Branch> CreateBranchAsync(string owner, string repo, string sourceBranch, string language);
         Task<IEnumerable<string>> SearchMdFilePaths(string owner, string repo, string sha);
+        Task<string> GetFileContents(string owner, string repo, string branch, string path);
     }
     public class GitHubService : IGitHubService
     {
@@ -39,6 +40,11 @@ namespace MdTranslatorLibrary
         {
             var results = await repository.SearchMdFilesAsync(owner, repo, sha);
             return results.Select(p => p.path);
+        }
+
+        public Task<string> GetFileContents(string owner, string repo, string branch, string path)
+        {
+            return repository.GetFileContents(owner, repo, branch, path);
         }
     }
 }
