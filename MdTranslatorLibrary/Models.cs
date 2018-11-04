@@ -62,7 +62,7 @@ namespace MdTranslatorLibrary
     }
 
 
-    public class Class1
+    public class Translated
     {
         public Translation[] translations { get; set; }
     }

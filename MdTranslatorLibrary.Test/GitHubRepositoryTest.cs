@@ -481,11 +481,11 @@ namespace MdTranslatorLibrary.Test
                 message.StatusCode = HttpStatusCode.OK;
 
                 gitHubContextMock.Setup(p => p.SendAsync(It.IsAny<HttpRequestMessage>())).ReturnsAsync(message)
-                    .Callback<HttpRequestMessage>(async (meg) =>
+                    .Callback<HttpRequestMessage>((meg) =>
                     {
                        Assert.Equal(HttpMethod.Put, meg.Method);
                        Assert.Equal(url, meg.RequestUri.ToString());
-                       Assert.Equal(JsonConvert.SerializeObject(operation), await meg.Content.ReadAsStringAsync());
+                       Assert.Equal(JsonConvert.SerializeObject(operation), meg.Content.ReadAsStringAsync().GetAwaiter().GetResult());
                     });
             }
 
