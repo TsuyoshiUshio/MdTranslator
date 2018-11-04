@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -100,7 +102,6 @@ namespace MdTranslatorLibrary.Test
             var InputRepo = "bar";
             var InputBranchName = "baz";
             var InputSha = "qux";
-            //         public async Task CreateBranchAsync(string owner, string repo, string branchName, string sha)
             var ExpectedURL = $"https://api.github.com/repos/{InputOwner}/{InputRepo}/git/refs";
             var branchRef = new BranchRef()
             {
@@ -115,6 +116,72 @@ namespace MdTranslatorLibrary.Test
 
             var ex = await Assert.ThrowsAsync<RestAPICallException>(async () =>
                 await repository.CreateBranchAsync(InputOwner, InputRepo, InputBranchName, InputSha)
+            );
+
+            Assert.Equal("InternalServerError", ex.StatusCode);
+            Assert.Equal("Internal Server Error", ex.Message);
+            Assert.Equal(ExpectedURL, ex.RequestMessage.RequestUri.ToString());
+        }
+
+        [Fact]
+        public async Task Search_MdFiles_Normal()
+        {
+            var InputOwner = "foo";
+            var InputRepo = "bar";
+            var InputSha = "baz";
+            var ExpectedURL = $"https://api.github.com/repos/{InputOwner}/{InputRepo}/git/trees/{InputSha}?recursive=1";
+
+            var fixture = new GitHubFixture();
+            var trees = new Tree[]
+            {
+                new Tree()
+                {
+                    path = "abc.txt"
+                },
+                new Tree()
+                {
+                    path = "bcd.md"
+                },
+                new Tree()
+                {
+                    path = "cde.md"
+                },
+                new Tree()
+                {
+                    path = "def.lock"
+                }
+            };
+            var searchResult = new SearchResult();
+            searchResult.tree = trees;
+            var treeJson = JsonConvert.SerializeObject(searchResult);
+
+            fixture.SetupSearchMd(ExpectedURL, treeJson);
+            var repository = new GitHubRepository(fixture.GitHubContext);
+            var result = await repository.SearchMdFilesAsync(InputOwner, InputRepo, InputSha);
+            Assert.Equal(2, result.Count());
+            var enumerator = result.GetEnumerator();
+            enumerator.MoveNext();
+            Assert.Equal("bcd.md", enumerator.Current.path);
+            enumerator.MoveNext();
+            Assert.Equal("cde.md", enumerator.Current.path);
+
+        }
+
+        [Fact]
+        public async Task Search_MdFiles_Exception()
+        {
+            var InputOwner = "foo";
+            var InputRepo = "bar";
+            var InputSha = "baz";
+            var ExpectedURL = $"https://api.github.com/repos/{InputOwner}/{InputRepo}/git/trees/{InputSha}?recursive=1";
+
+            var fixture = new GitHubFixture();
+
+            fixture.SetupSearchMdWithFailure(ExpectedURL);
+            var repository = new GitHubRepository(fixture.GitHubContext);
+
+            var ex = await Assert.ThrowsAsync<RestAPICallException>(async () =>
+                await repository.SearchMdFilesAsync(InputOwner, InputRepo, InputSha)
             );
 
             Assert.Equal("InternalServerError", ex.StatusCode);
@@ -188,6 +255,29 @@ namespace MdTranslatorLibrary.Test
                 message.RequestMessage = requestMessage;
 
                 gitHubContextMock.Setup(p => p.PostAsync(url, jsonContents)).ReturnsAsync(message);
+            }
+
+            public void SetupSearchMd(string url, string jsonContents)
+            {
+                // var response = await context.GetAsync($"{RestAPIBase}/{owner}/{repo}/git/trees/{sha}?recursive=1");
+                this.SetUp();
+                var message = new HttpResponseMessage();
+                message.StatusCode = HttpStatusCode.OK;
+                message.Content = new StringContent(jsonContents);
+                gitHubContextMock.Setup(p => p.GetAsync(url)).ReturnsAsync(message);
+            }
+
+            public void SetupSearchMdWithFailure(string url)
+            {
+                this.SetUp();
+                var message = new HttpResponseMessage();
+                message.StatusCode = HttpStatusCode.InternalServerError;
+
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.RequestUri = new Uri(url);
+                message.RequestMessage = requestMessage;
+
+                gitHubContextMock.Setup(p => p.GetAsync(url)).ReturnsAsync(message);
             }
 
             private void SetUp()

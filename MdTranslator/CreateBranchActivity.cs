@@ -14,9 +14,9 @@ namespace MdTranslator
         [FunctionName("CreateBranchActivity")]
         public static async Task<string> CreateBranchActivityAsync([ActivityTrigger] string name, [Inject] IGitHubService service, ILogger log)
         {
-            await service.CreateBranchAsync("TsuyoshiUshio", "TranslationTarget", "master", "jp");
-            log.LogInformation("Delete master-jp repo done.");
-            return "Hello";
+            var branch = await service.CreateBranchAsync("TsuyoshiUshio", "TranslationTarget", "master", "ja");
+            log.LogInformation("Create master-ja repo done.");
+            return branch.commit.sha;
         }
     }
 }

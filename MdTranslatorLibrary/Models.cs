@@ -27,7 +27,7 @@ namespace MdTranslatorLibrary
     }
 
 
-    public class Search
+    public class SearchResult
     {
         public string sha { get; set; }
         public string url { get; set; }

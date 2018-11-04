@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -51,6 +52,20 @@ namespace MdTranslatorLibrary
             var json = JsonConvert.SerializeObject(branchRef);
             var response = await context.PostAsync($"{RestAPIBase}/{owner}/{repo}/git/refs", json);
             if (response.StatusCode != HttpStatusCode.Created)
+            {
+                throw new RestAPICallException(response.StatusCode.ToString(), response.ReasonPhrase, response.RequestMessage);
+            }
+        }
+
+        public async Task<IEnumerable<Tree>> SearchMdFilesAsync(string owner, string repo, string sha)
+        {
+            var response = await context.GetAsync($"{RestAPIBase}/{owner}/{repo}/git/trees/{sha}?recursive=1");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var search = JsonConvert.DeserializeObject<SearchResult>(await response.Content.ReadAsStringAsync());
+                return search.tree.Where(p => p.path.EndsWith(".md"));
+            }
+            else
             {
                 throw new RestAPICallException(response.StatusCode.ToString(), response.ReasonPhrase, response.RequestMessage);
             }
