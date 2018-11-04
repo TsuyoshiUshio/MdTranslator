@@ -70,6 +70,57 @@ namespace MdTranslatorLibrary.Test
             Assert.Equal(ExpectedURL, ex.RequestMessage.RequestUri.ToString());
         }
 
+        [Fact]
+        public async Task Create_Branch_Normal()
+        {
+            var InputOwner = "foo";
+            var InputRepo = "bar";
+            var InputBranchName = "baz";
+            var InputSha = "qux";
+            //         public async Task CreateBranchAsync(string owner, string repo, string branchName, string sha)
+            var ExpectedURL = $"https://api.github.com/repos/{InputOwner}/{InputRepo}/git/refs";
+            var branchRef = new BranchRef()
+            {
+                Ref = $"refs/heads/{InputBranchName}",
+                sha = InputSha
+            };
+            var ExpectedJson = JsonConvert.SerializeObject(branchRef);
+
+            var fixture = new GitHubFixture();
+            fixture.SetupCreateBranch(ExpectedURL, ExpectedJson);
+            var repository = new GitHubRepository(fixture.GitHubContext);
+            await repository.CreateBranchAsync(InputOwner, InputRepo, InputBranchName, InputSha);
+            fixture.VerifyCreateBranch(ExpectedURL, ExpectedJson);
+        }
+
+        [Fact]
+        public async Task Create_Branch_Exception()
+        {
+            var InputOwner = "foo";
+            var InputRepo = "bar";
+            var InputBranchName = "baz";
+            var InputSha = "qux";
+            //         public async Task CreateBranchAsync(string owner, string repo, string branchName, string sha)
+            var ExpectedURL = $"https://api.github.com/repos/{InputOwner}/{InputRepo}/git/refs";
+            var branchRef = new BranchRef()
+            {
+                Ref = $"refs/heads/{InputBranchName}",
+                sha = InputSha
+            };
+            var ExpectedJson = JsonConvert.SerializeObject(branchRef);
+
+            var fixture = new GitHubFixture();
+            fixture.SetupCreateBranchWithFailure(ExpectedURL, ExpectedJson);
+            var repository = new GitHubRepository(fixture.GitHubContext);
+
+            var ex = await Assert.ThrowsAsync<RestAPICallException>(async () =>
+                await repository.CreateBranchAsync(InputOwner, InputRepo, InputBranchName, InputSha)
+            );
+
+            Assert.Equal("InternalServerError", ex.StatusCode);
+            Assert.Equal("Internal Server Error", ex.Message);
+            Assert.Equal(ExpectedURL, ex.RequestMessage.RequestUri.ToString());
+        }
 
 
         private class GitHubFixture
@@ -109,7 +160,35 @@ namespace MdTranslatorLibrary.Test
                 message.RequestMessage = requestMessage;
 
                 gitHubContextMock.Setup(p => p.GetAsync(url)).ReturnsAsync(message);
-            } 
+            }
+
+            public void SetupCreateBranch(string url, string jsonContents)
+            {
+                this.SetUp();
+                var message = new HttpResponseMessage();
+                message.StatusCode = HttpStatusCode.Created;
+                message.Content = new StringContent("hello");
+                gitHubContextMock.Setup(p => p.PostAsync(url, jsonContents)).ReturnsAsync(message);
+            }
+
+            public void VerifyCreateBranch(string url, string jsonContents)
+            {
+                gitHubContextMock.Verify(p => p.PostAsync(url, jsonContents));
+            }
+
+            public void SetupCreateBranchWithFailure(string url, string jsonContents)
+            {
+                this.SetUp();
+                var message = new HttpResponseMessage();
+                message.StatusCode = HttpStatusCode.InternalServerError;
+                message.Content = new StringContent("hello");
+
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.RequestUri = new Uri(url);
+                message.RequestMessage = requestMessage;
+
+                gitHubContextMock.Setup(p => p.PostAsync(url, jsonContents)).ReturnsAsync(message);
+            }
 
             private void SetUp()
             {

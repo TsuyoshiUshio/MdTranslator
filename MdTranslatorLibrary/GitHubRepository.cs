@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -9,6 +10,7 @@ namespace MdTranslatorLibrary
     public interface IGitHubRepository
     {
         Task DeleteBranchAsync(string owner, string repo, string branchName);
+        Task<Branch> GetBranchAsync(string owner, string repo, string branchName);
     }
     public class GitHubRepository : IGitHubRepository
     {
@@ -37,9 +39,19 @@ namespace MdTranslatorLibrary
             }
         }
 
-        public async Task CreateBranchAsync(string branchName, string sha)
+        public async Task CreateBranchAsync(string owner, string repo, string branchName, string sha)
         {
-
+            var branchRef = new BranchRef
+            {
+                Ref = $"refs/heads/{branchName}",
+                sha = sha
+            };
+            var json = JsonConvert.SerializeObject(branchRef);
+            var response = await context.PostAsync($"{RestAPIBase}/{owner}/{repo}/git/refs", json);
+            if (response.StatusCode != HttpStatusCode.Created)
+            {
+                throw new RestAPICallException(response.StatusCode.ToString(), response.ReasonPhrase, response.RequestMessage);
+            }
         }
     }
 }

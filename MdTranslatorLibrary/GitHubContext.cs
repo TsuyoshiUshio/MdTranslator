@@ -10,6 +10,7 @@ namespace MdTranslatorLibrary
     {
         Task<HttpResponseMessage> DeleteAsync(string url);
         Task<HttpResponseMessage> GetAsync(string url);
+        Task<HttpResponseMessage> PostAsync(string url, string contents);
     }
     public class GitHubContext : IGitHubContext
     {
@@ -29,6 +30,11 @@ namespace MdTranslatorLibrary
         public Task<HttpResponseMessage> GetAsync(string url)
         {
             return client.GetAsync(new Uri(url));
+        }
+
+        public Task<HttpResponseMessage> PostAsync(string url, string contents)
+        {
+            return client.PostAsync(new Uri(url), new StringContent(contents));
         }
     }
 }
