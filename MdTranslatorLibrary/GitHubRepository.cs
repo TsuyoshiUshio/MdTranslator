@@ -11,6 +11,8 @@ namespace MdTranslatorLibrary
     {
         Task DeleteBranchAsync(string owner, string repo, string branchName);
         Task<Branch> GetBranchAsync(string owner, string repo, string branchName);
+
+        Task CreateBranchAsync(string owner, string repo, string branchName, string sha);
     }
     public class GitHubRepository : IGitHubRepository
     {

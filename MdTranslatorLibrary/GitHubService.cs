@@ -25,9 +25,11 @@ namespace MdTranslatorLibrary
         /// <returns><see cref="Branch"/></returns>
         public async Task<Branch> CreateBranchAsync(string owner, string repo, string sourceBranch, string language)
         {
-            await repository.DeleteBranchAsync(owner, repo, $"{sourceBranch}-{language}");
+            var targetBranch = $"{sourceBranch}-{language}";
+            await repository.DeleteBranchAsync(owner, repo, targetBranch);
             var branch = await repository.GetBranchAsync(owner, repo, sourceBranch);
-            return null;
+            await repository.CreateBranchAsync(owner, repo, targetBranch, branch.commit.sha);
+            return await repository.GetBranchAsync(owner, repo, targetBranch);
         }
 
     }
