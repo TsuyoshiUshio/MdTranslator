@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DIBindings", "DIBindings\DI
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MdTranslatorLibrary", "MdTranslatorLibrary\MdTranslatorLibrary.csproj", "{9BC12169-306E-4DB1-9F15-CEFD78736E50}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MdTranslatorLibrary.Test", "MdTranslatorLibrary.Test\MdTranslatorLibrary.Test.csproj", "{C0CE84F7-B300-41DA-8B1E-F6B32B172F24}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{9BC12169-306E-4DB1-9F15-CEFD78736E50}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BC12169-306E-4DB1-9F15-CEFD78736E50}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9BC12169-306E-4DB1-9F15-CEFD78736E50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0CE84F7-B300-41DA-8B1E-F6B32B172F24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0CE84F7-B300-41DA-8B1E-F6B32B172F24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0CE84F7-B300-41DA-8B1E-F6B32B172F24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0CE84F7-B300-41DA-8B1E-F6B32B172F24}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
