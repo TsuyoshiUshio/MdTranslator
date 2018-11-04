@@ -2,7 +2,7 @@
 
 Translate markdown document on your repository.
 
-
+[![Build Status](https://simplearchitect.visualstudio.com/MdTranslator/_apis/build/status/MdTranslator.CI)](https://simplearchitect.visualstudio.com/MdTranslator/_build/latest?definitionId=5)
 
 # Motivation
 
