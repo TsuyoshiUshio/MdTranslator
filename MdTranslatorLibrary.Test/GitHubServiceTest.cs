@@ -30,7 +30,30 @@ namespace MdTranslatorLibrary.Test
         [Fact]
         public async Task Update_File_Normal_Case()
         {
-            var fixture = new GitHubFixture(); 
+            var ExpectedCommitName = "Tsuyoshi Ushio";
+            var ExpectedCommitEmail = "foo@bar.com";
+            using (var session = new CommitSession(ExpectedCommitName, ExpectedCommitEmail))
+            {
+                var InputPath = "foo";
+                var InputText = "konnichiwa.";
+                var ExpectedTargetBranch = "foo-ja";
+                var ExpectedSha = "quux";
+                var InputLanguage = "ja";
+                var fixture = new GitHubFixture();
+                fixture.SetupUpdateFileContents(fixture.InputOwner, fixture.InputRepo, InputPath);
+                // public async Task UpdateFileContentsAsync(string owner, string repo, string path, string branch, string text, string sha, string language)
+                var service = new GitHubService(fixture.GitHubRepository);
+                await service.UpdateFileContentsAsync(fixture.InputOwner, fixture.InputRepo, InputPath,
+                    ExpectedTargetBranch, InputText, ExpectedSha, InputLanguage);
+                var operation = fixture.ActualFileOperation;
+                Assert.Equal($"Generate {InputLanguage} version", operation.message);
+                Assert.Equal(ExpectedCommitName, operation.commiter.name);
+                Assert.Equal(ExpectedCommitEmail, operation.commiter.email);
+                Assert.Equal(ExpectedTargetBranch, operation.branch);
+                Assert.Equal(ExpectedSha, operation.sha);
+                Assert.Equal(Convert.ToBase64String(Encoding.UTF8.GetBytes(InputText)), operation.content);
+            }
+
         }
 
         private class CommitSession : IDisposable
@@ -125,6 +148,7 @@ namespace MdTranslatorLibrary.Test
 
             public void SetupUpdateFileContents(string owner, string repo, string path)
             {
+                this.Setup();
                 gitHubRepositoryMock.Setup(p => p.UpdateFileContents(owner, repo, path, It.IsAny<FileOperation>()))
                     .Returns(Task.FromResult(""))
                     .Callback<string, string, string, FileOperation>((a, b, c, operation) =>

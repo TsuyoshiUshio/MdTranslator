@@ -11,6 +11,9 @@ namespace MdTranslatorLibrary
         Task<Branch> CreateBranchAsync(string owner, string repo, string sourceBranch, string language);
         Task<IEnumerable<string>> SearchMdFilePaths(string owner, string repo, string sha);
         Task<string> GetFileContents(string owner, string repo, string branch, string path);
+
+        Task UpdateFileContentsAsync(string owner, string repo, string path, string branch, string text, string sha,
+            string language);
     }
     public class GitHubService : IGitHubService
     {
@@ -59,7 +62,8 @@ namespace MdTranslatorLibrary
                     email = Environment.GetEnvironmentVariable("CommitEmail")
                 },
                 branch = branch,
-                content = Convert.ToBase64String(Encoding.UTF8.GetBytes(text))
+                content = Convert.ToBase64String(Encoding.UTF8.GetBytes(text)),
+                sha = sha
             };
             await repository.UpdateFileContents(owner, repo, path, operation);
 
