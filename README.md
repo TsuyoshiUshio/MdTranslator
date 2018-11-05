@@ -34,5 +34,16 @@ This app use "CommitName" and "CommitEmail" when it updates the md files. It rec
 }
 ```
 
+# Usage
+
+You can send an request with `POST` to `http://localhost:7071/api/MdTranslator_Start` or your address. Message body is
+
+```
+{"owner": "TsuyoshiUshio",
+ "repo": "TranslationTarget",
+ "sourceBranch": "master",
+ "language": "ja"
+}
+```
 
 
