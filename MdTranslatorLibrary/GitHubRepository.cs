@@ -19,6 +19,8 @@ namespace MdTranslatorLibrary
         Task<IEnumerable<Tree>> SearchMdFilesAsync(string owner, string repo, string sha);
 
         Task<string> GetFileContents(string owner, string repo, string branch, string path);
+
+        Task UpdateFileContents(string owner, string repo, string path, FileOperation operation);
     }
     public class GitHubRepository : IGitHubRepository
     {

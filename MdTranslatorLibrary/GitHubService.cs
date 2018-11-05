@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Text;
 
 namespace MdTranslatorLibrary
 {
@@ -45,6 +46,23 @@ namespace MdTranslatorLibrary
         public Task<string> GetFileContents(string owner, string repo, string branch, string path)
         {
             return repository.GetFileContents(owner, repo, branch, path);
+        }
+
+        public async Task UpdateFileContentsAsync(string owner, string repo, string path, string branch, string text, string sha, string language)
+        {
+            var operation = new FileOperation()
+            {
+                message = $"Generate {language} version",
+                commiter = new Commiter()
+                {
+                    name = Environment.GetEnvironmentVariable("CommitName"),
+                    email = Environment.GetEnvironmentVariable("CommitEmail")
+                },
+                branch = branch,
+                content = Convert.ToBase64String(Encoding.UTF8.GetBytes(text))
+            };
+            await repository.UpdateFileContents(owner, repo, path, operation);
+
         }
     }
 }

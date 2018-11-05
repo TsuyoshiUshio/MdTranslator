@@ -4,6 +4,8 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "GitHubToken": "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN_HERE",
-    "TranslatorKey": "YOUR_COGNITIVE_SERVICE_TRANSLATOR_KEY_HERE"
+    "TranslatorKey": "YOUR_COGNITIVE_SERVICE_TRANSLATOR_KEY_HERE",
+    "CommitName": "UPDATE_GITHUB_ACCOUNT_NAME",
+    "CommitEmail": "UPDATE_GITHUB_ACCOUNT_EMAIL"
   }
 }

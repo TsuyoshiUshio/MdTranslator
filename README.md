@@ -18,6 +18,8 @@ I'd like to automate this effort by the power of the Durable Functions.
 
 Create `local.settings.json` with adding GitHubAccessToken and Cognitive Service Translator key here. For the FunctionApp, You need to add `GitHubToken` and `TranslatorKey` on your AppSettings on your FunctionApp.
 
+This app use "CommitName" and "CommitEmail" when it updates the md files. It records as commit logs.
+
 ```
 {
     "IsEncrypted": false,
@@ -26,6 +28,8 @@ Create `local.settings.json` with adding GitHubAccessToken and Cognitive Service
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "GitHubToken": "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN_HERE",
     "TranslatorKey": "YOUR_COGNITIVE_SERVICE_TRANSLATOR_KEY_HERE"
+    "CommitName": "UPDATE_GITHUB_ACCOUNT_NAME",
+    "CommitEmail": "UPDATE_GITHUB_ACCOUNT_EMAIL"
   }
 }
 ```
