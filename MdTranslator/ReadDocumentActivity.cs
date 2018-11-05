@@ -14,7 +14,9 @@ namespace MdTranslator
         [FunctionName("ReadDocument")]
         public static async Task<TranslationOrchestrationContext> ReadDocumentAsync([ActivityTrigger] TranslationOrchestrationContext context, [Inject] IGitHubService service, ILogger log)
         {
-             context.SourceText =  await service.GetFileContents(context.Owner, context.Repo, context.TargetBranch, context.Path);
+            var result =  await service.GetFileContents(context.Owner, context.Repo, context.TargetBranch, context.Path);
+            context.TargetSha = result.Item1.sha; // Update sha with the target document.
+            context.SourceText = result.Item2;
             return context;
         }
     }

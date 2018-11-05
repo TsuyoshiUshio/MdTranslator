@@ -32,8 +32,9 @@ namespace MdTranslator
             {
                 tasks.Add(context.CallSubOrchestratorAsync<string>("TranslationSubOrchestrator", 
                     translationContext.ConvertSubOrchestrationContext(path)));
-                var waitTime = context.CurrentUtcDateTime.Add(TimeSpan.FromSeconds(3));
-                await context.CreateTimer(waitTime, CancellationToken.None);
+                // In case you've got throttling. You might get an conflict. It covered by retry.
+                //var waitTime = context.CurrentUtcDateTime.Add(TimeSpan.FromSeconds(3));
+                //await context.CreateTimer(waitTime, CancellationToken.None);
             }
 
             await Task.WhenAll(tasks);

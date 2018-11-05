@@ -207,7 +207,8 @@ namespace MdTranslatorLibrary.Test
             fixture.SetupGetFileContents(ExpectedContentURL, ExpectedDownloadURL,ExpectedContent);
             var respository = new GitHubRepository(fixture.GitHubContext);
             var result = await respository.GetFileContents(InputOwner, InputRepo, InputBranch, InputPath);
-            Assert.Equal(ExpectedContent, result);
+            Assert.Equal(ExpectedContent, result.Item2);
+            Assert.Equal(ExpectedDownloadURL, result.Item1.download_url);
         }
 
         [Fact]

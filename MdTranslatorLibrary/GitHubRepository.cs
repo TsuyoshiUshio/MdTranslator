@@ -18,7 +18,7 @@ namespace MdTranslatorLibrary
 
         Task<IEnumerable<Tree>> SearchMdFilesAsync(string owner, string repo, string sha);
 
-        Task<string> GetFileContents(string owner, string repo, string branch, string path);
+        Task<ValueTuple<Content, string>> GetFileContents(string owner, string repo, string branch, string path);
 
         Task UpdateFileContents(string owner, string repo, string path, FileOperation operation);
     }
@@ -93,13 +93,13 @@ namespace MdTranslatorLibrary
             }
         }
 
-        public async Task<string> GetFileContents(string owner, string repo, string branch, string path)
+        public async Task<ValueTuple<Content, string>> GetFileContents(string owner, string repo, string branch, string path)
         {
             var response = await context.GetAsync($"{RestAPIBase}/{owner}/{repo}/contents/{path}?ref={branch}");
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 var content = JsonConvert.DeserializeObject<Content>(await response.Content.ReadAsStringAsync());
-                return await DownloadContents(content.download_url);
+                return (content, await DownloadContents(content.download_url));
             } 
             else
             {

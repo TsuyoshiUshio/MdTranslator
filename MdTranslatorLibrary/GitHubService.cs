@@ -10,7 +10,7 @@ namespace MdTranslatorLibrary
     {
         Task<Branch> CreateBranchAsync(string owner, string repo, string sourceBranch, string language);
         Task<IEnumerable<string>> SearchMdFilePaths(string owner, string repo, string sha);
-        Task<string> GetFileContents(string owner, string repo, string branch, string path);
+        Task<ValueTuple<Content, string>> GetFileContents(string owner, string repo, string branch, string path);
 
         Task UpdateFileContentsAsync(string owner, string repo, string path, string branch, string text, string sha,
             string language);
@@ -46,9 +46,10 @@ namespace MdTranslatorLibrary
             return results.Select(p => p.path);
         }
 
-        public Task<string> GetFileContents(string owner, string repo, string branch, string path)
+        public Task<ValueTuple<Content, string>> GetFileContents(string owner, string repo, string branch, string path)
         {
-            return repository.GetFileContents(owner, repo, branch, path);
+           return repository.GetFileContents(owner, repo, branch, path);
+          
         }
 
         public async Task UpdateFileContentsAsync(string owner, string repo, string path, string branch, string text, string sha, string language)
