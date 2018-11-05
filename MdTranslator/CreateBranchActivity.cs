@@ -12,11 +12,13 @@ namespace MdTranslator
     public static class CreateBranchActivity
     {
         [FunctionName("CreateBranchActivity")]
-        public static async Task<string> CreateBranchActivityAsync([ActivityTrigger] string name, [Inject] IGitHubService service, ILogger log)
+        public static async Task<OrchestrationContext> CreateBranchActivityAsync([ActivityTrigger] OrchestrationContext context, [Inject] IGitHubService service, ILogger log)
         {
-            var branch = await service.CreateBranchAsync("TsuyoshiUshio", "TranslationTarget", "master", "ja");
-            log.LogInformation("Create master-ja repo done.");
-            return branch.commit.sha;
+            var branch = await service.CreateBranchAsync(context.Owner, context.Repo, context.SourceBranch, context.Language);
+            context.TargetSha = branch.commit.sha;
+            context.TargetBranch = $"{context.SourceBranch}-{context.Language}";
+            log.LogInformation($"Created the {context.Repo}-{context.Language} repo done.");
+            return context;
         }
     }
 }

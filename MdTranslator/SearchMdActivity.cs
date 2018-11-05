@@ -12,9 +12,11 @@ namespace MdTranslator
     public static class SearchMdActivity
     {
         [FunctionName("SearchMdActivity")]
-        public static async Task<IEnumerable<string>> SearchMdActivityAsync([ActivityTrigger] string branchSha, [Inject] IGitHubService service, ILogger log)
+        public static async Task<OrchestrationContext> SearchMdActivityAsync([ActivityTrigger] OrchestrationContext context, [Inject] IGitHubService service, ILogger log)
         {
-            return await service.SearchMdFilePaths("TsuyoshiUshio", "TranslationTarget", branchSha);
+            var paths = await service.SearchMdFilePaths(context.Owner, context.Repo, context.TargetSha);
+            context.Paths = paths;
+            return context;
         }
     }
 }
